@@ -1,36 +1,46 @@
 package com.example.cep.activities;
 
+import static com.example.cep.utils.utils.URL;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.Manifest;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.Button;
-import android.widget.ProgressBar;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.cep.R;
 import com.example.cep.api.RESTService;
 import com.example.cep.databinding.ActivityMainBinding;
+import com.example.cep.helper.Permissoes;
 import com.example.cep.model.CEP;
-import com.google.android.material.textfield.TextInputEditText;
-import com.google.android.material.textfield.TextInputLayout;
 
+import java.io.IOException;
+
+import okhttp3.Interceptor;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class MainActivity extends AppCompatActivity  implements View.OnClickListener{
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
-    private final String URL = "https://viacep.com.br/ws/";
     private ActivityMainBinding mBinding;
     private Retrofit retrofitCEP;
+    private String[] permissoes = new String[]{
+            Manifest.permission.ACCESS_NETWORK_STATE
+    };
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,12 +49,30 @@ public class MainActivity extends AppCompatActivity  implements View.OnClickList
         setContentView(mBinding.getRoot());
         mBinding.progressBarCEP.setVisibility(View.GONE);
 
-        retrofitCEP = new Retrofit.Builder()
-                .baseUrl(URL)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
+        retroHTTP();
+
+        Permissoes.validarPermissoes(permissoes,this,1);
 
         mBinding.btnConsultarCEP.setOnClickListener(this);
+    }
+
+    private void retroHTTP(){
+        OkHttpClient.Builder httpClient = new OkHttpClient.Builder();
+        httpClient.addInterceptor(new Interceptor() {
+            @Override
+            public okhttp3.Response intercept(Chain chain) throws IOException {
+                Request req = chain.request()
+                        .newBuilder()
+                        .build();
+                return chain.proceed(req);
+            }
+        });
+
+        retrofitCEP = new Retrofit.Builder()
+                .baseUrl(URL)
+                .client(httpClient.build())
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
     }
 
     private Boolean validarCampos() {
@@ -100,18 +128,23 @@ public class MainActivity extends AppCompatActivity  implements View.OnClickList
             public void onResponse(Call<CEP> call, Response<CEP> response) {
                 if (response.isSuccessful()) {
                     CEP cep = response.body();
-                    mBinding.txtLogradouro.setText("Logadora: \n" + cep.getLogradouro());
-                    if (cep.getComplemento().isEmpty()) {
-                        mBinding.txtComplemento.setText("Não tem complemento");
-                    }else{
-                        mBinding.txtComplemento.setText("Complemento: \n" + cep.getComplemento());
-                    }
-                    mBinding.txtBairro.setText("Bairro: \n" + cep.getBairro());
-                    mBinding.txtUF.setText("UF: " + cep.getUf());
-                    mBinding.txtLocalidade.setText("Localidade: \n" + cep.getLocalidade());
-                    Toast.makeText(getApplicationContext(), "CEP consultado com sucesso", Toast.LENGTH_LONG).show();
+                    if (cep.getLogradouro() != null) {
+                        mBinding.txtLogradouro.setText("Logadora: \n" + cep.getLogradouro());
+                        if (cep.getComplemento().isEmpty()) {
+                            mBinding.txtComplemento.setText("Não tem complemento");
+                        } else {
+                            mBinding.txtComplemento.setText("Complemento: \n" + cep.getComplemento());
+                        }
+                        mBinding.txtBairro.setText("Bairro: \n" + cep.getBairro());
+                        mBinding.txtUF.setText("UF: " + cep.getUf());
+                        mBinding.txtLocalidade.setText("Localidade: \n" + cep.getLocalidade());
+                        Toast.makeText(getApplicationContext(), "CEP consultado com sucesso", Toast.LENGTH_LONG).show();
 
-                    mBinding.progressBarCEP.setVisibility(View.GONE);
+                        mBinding.progressBarCEP.setVisibility(View.GONE);
+                    } else {
+                        mBinding.txtCEP.setError("Digite um CEP valido");
+                        mBinding.progressBarCEP.setVisibility(View.GONE);
+                    }
 
                 }
             }
@@ -125,5 +158,35 @@ public class MainActivity extends AppCompatActivity  implements View.OnClickList
                 mBinding.progressBarCEP.setVisibility(View.GONE);
             }
         });
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        for (int permissaoResultado : grantResults){
+            if (permissaoResultado== PackageManager.PERMISSION_DENIED){
+
+                alertaValidacaoPermissao();
+
+            }
+        }
+    }
+
+    private void alertaValidacaoPermissao(){
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Permissões Negadas");
+        builder.setMessage("Para utilizar o app é necessário aceitar as permissões");
+        builder.setCancelable(false);
+        builder.setPositiveButton("Confirmar", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                finish();
+            }
+        });
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+
     }
 }
