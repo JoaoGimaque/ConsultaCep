@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/gradient"
     tools:context=".activities.MainActivity">
 
     <com.google.android.material.textfield.TextInputLayout
@@ -21,7 +22,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:maxLength="8"
-            android:hint="CEP"
+            android:hint="@string/cep"
             android:inputType="number" />
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -30,8 +31,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:layout_marginLeft="16dp"
-        android:text="Consultar"
+        android:text="@string/consultar"
         app:layout_constraintBottom_toBottomOf="@+id/txtinplayCEP"
         app:layout_constraintStart_toEndOf="@+id/txtinplayCEP"
         app:layout_constraintTop_toTopOf="@+id/txtinplayCEP" />
@@ -41,6 +41,7 @@
         android:id="@+id/txtLogradouro"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:textColor="@color/white"
         android:textSize="24sp"
         android:layout_marginStart="32dp"
         android:layout_marginLeft="32dp"
@@ -56,6 +57,7 @@
         android:id="@+id/txtComplemento"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:textColor="@color/white"
         android:textSize="24sp"
         android:layout_marginTop="8dp"
         app:layout_constraintEnd_toEndOf="@+id/txtLogradouro"
@@ -67,6 +69,7 @@
         android:id="@+id/txtBairro"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:textColor="@color/white"
         android:textSize="24sp"
         android:layout_marginTop="8dp"
         app:layout_constraintEnd_toEndOf="@+id/txtComplemento"
@@ -77,6 +80,7 @@
         android:id="@+id/txtUF"
         android:layout_width="60dp"
         android:layout_height="wrap_content"
+        android:textColor="@color/white"
         android:textSize="24sp"
         android:layout_marginTop="8dp"
         app:layout_constraintStart_toStartOf="@+id/txtBairro"
@@ -86,6 +90,7 @@
         android:id="@+id/txtLocalidade"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:textColor="@color/white"
         android:textSize="24sp"
         android:layout_marginStart="16dp"
         android:layout_marginLeft="16dp"
